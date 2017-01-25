@@ -1,0 +1,115 @@
+<html>
+  <head>
+    <title>links</title>
+    <style>
+    body {
+      background-color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', loaded);
+
+    function loaded() {
+      document.body.addEventListener('dragenter', dragenter);
+      document.body.addEventListener('dragover', dragover);
+      document.body.addEventListener('drop', drop);
+
+      function dragenter(event) {
+        console.log('dragenter', event);
+        event.preventDefault();
+      }
+
+      function dragover(event) {
+        event.preventDefault();
+      }
+
+      function drop(event) {
+        console.log('drop', event);
+
+        try {handleDrop(event);} catch(e) { console.log('error handling drop', e, event); alert('should give alert to user'); }
+
+        event.preventDefault();
+      }
+    }
+
+    function handleDrop(event) {
+      console.log('handling', event.dataTransfer.types);
+      var data = event.dataTransfer.types.map(function(type) { return [type, event.dataTransfer.getData(type)]; });
+      console.log('data', data);
+
+      var processed = processDropData(data);
+      console.log('processed', processed);
+
+      if (processed.links) {
+        var linkArea = document.getElementById('link-area');
+        var newLinkContainer = document.createElement('div');
+
+        var text = document.createTextNode(processed.text);
+
+        newLinkContainer.appendChild(text);
+
+        processed.links.forEach(function (uri) {
+          var link = document.createElement('a');
+          link.href = uri;
+          link.appendChild(document.createTextNode(uri));
+          newLinkContainer.appendChild(link);
+        });
+
+        linkArea.appendChild(newLinkContainer);
+      }
+    }
+
+    function processDropData(data) {
+      var processed = {};
+      for (var i = 0; i < data.length; i++) {
+        var type = data[i][0],
+            d = data[i][1];
+
+        switch(type) {
+          case 'text/plain':
+            processed.text = d;
+            break;
+          case 'text/uri-list':
+            processed.links = d.split('\n');
+            break;
+          case 'text/html':
+            processed.html = d;
+            break;
+        }
+      }
+
+      return processed;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //dataTransfer.items not supported everywhere; DON'T USE now
+    function handleDropItems(event) {
+      console.log('handling', event.dataTransfer.types);
+      for (var i = 0; i < event.dataTransfer.items.length; i++) {
+        var item = event.dataTransfer.items[i];
+        console.log('item', i, item);
+
+        if (item.kind === 'string') console.log('string', item.getAsString());
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="link-area"></div>
+  </body>
+</html>
